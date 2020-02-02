@@ -6,18 +6,23 @@ const S3 = new AWS.S3({signatureVersion: 'v4'});
 const Sharp = require('sharp');
 const PathPattern = /(.*\/)?(.*)\/(.*)/;
 
-// parameters
-const {BUCKET, URL} = process.env;
-
-
 exports.handler = async (event) => {
+    // decide BUCKET & S3 URL based on the params
+    const bucket = event.queryStringParameters.bucket;
+    let awsRegion = "eu-west-1";
+    // Allow users to pass region through URLS
+    if (event.queryStringParameters.region){
+        awsRegion = event.queryStringParameters.region;
+    }
+    // decide BUCKET & URL constants
+    const BUCKET = bucket;
+    const URL = "https://" + bucket + ".s3-" + awsRegion + ".amazonaws.com";
+
     const path = event.queryStringParameters.path;
     const parts = PathPattern.exec(path);
     const dir = parts[1] || '';
     const options = parts[2].split('_');
     const filename = parts[3];
-
-
     const sizes = options[0].split("x");
     const action = options.length > 1 ? options[1] : null;
 
